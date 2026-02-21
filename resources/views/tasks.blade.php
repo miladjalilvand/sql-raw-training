@@ -85,3 +85,55 @@ $(document).ready(function() {
 
 </body>
 </html>
+
+<!-- 
+<script>
+$(document).ready(function() {
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    // حذف تسک
+    $(document).on('click', '.delete-task', function(e) {
+        e.preventDefault();
+
+        let btn = $(this);                 // دکمه حذف
+        let taskId = btn.data('id');       // گرفتن id
+        let listItem = btn.closest('li');  // گرفتن li مربوطه
+
+        if(confirm('آیا مطمئن هستید؟')) {
+
+            $.ajax({
+                url: '{{ route("task-destroy") }}',
+                type: 'DELETE',
+                data: { id: taskId },
+
+                beforeSend: function() {
+                    btn.prop('disabled', true).text('در حال حذف...');
+                },
+
+                success: function(response) {
+                    if(response.success) {
+                        listItem.fadeOut(300, function() {
+                            $(this).remove();
+                        });
+                    } else {
+                        alert('خطا در حذف');
+                        btn.prop('disabled', false).text('حذف');
+                    }
+                },
+
+                error: function() {
+                    alert('خطا در ارتباط با سرور');
+                    btn.prop('disabled', false).text('حذف');
+                }
+            });
+        }
+    });
+
+});
+</script>
+ -->
