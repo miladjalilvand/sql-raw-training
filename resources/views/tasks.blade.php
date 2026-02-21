@@ -51,7 +51,7 @@ $(document).ready(function() {
         
         var taskId = $(this).data('id');
         var listItem = $(this).closest('li');
-        
+        var btn = $(this);
         if(confirm('آیا از حذف این تسک اطمینان دارید؟')) {
             $.ajax({
                 url: '{{ route("task-destroy") }}',
@@ -60,7 +60,7 @@ $(document).ready(function() {
                     id: taskId
                 },
                 beforeSend: function() {
-                    $(this).text('در حال حذف...');
+        btn.text('در حال حذف...');
                 },
                 success: function(response) {
                     if(response.success) {
