@@ -23,7 +23,7 @@ class TaskController extends Controller
         'caption' => 'task 2 - ' . Str::random(12)
     ]);
 
-    // ارسال متغیر task به ویو
+
     $html = view('part_tasks', compact('task'))->render();
 
     return response()->json([

@@ -1,55 +1,3 @@
-<!-- <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-</head>
-<body>
-
-<ul id="list-tasks">
-    @foreach($tasks as $task)
-        @include('part_tasks', ['task' => $task])
-    @endforeach
-</ul>
-
-<button id="myButton">کلیک کن</button>
-
-<script>
-$(document).ready(function() {
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
-
-    $('#myButton').click(function() {
-        $.ajax({
-            url: '{{ route("new-task") }}',
-            type: 'POST',
-            beforeSend: function() {
-                $('#myButton').prop('disabled', true).text('در حال ایجاد...');
-            },
-            success: function(response) {
-                // اضافه کردن آیتم جدید به لیست
-                $('#list-tasks').append(response.html);
-                
-                // فعال کردن مجدد دکمه
-                $('#myButton').prop('disabled', false).text('کلیک کن');
-            },
-            error: function(xhr) {
-                console.log('خطا:', xhr);
-                alert('خطا در ایجاد تسک جدید: ' + (xhr.responseJSON?.message || 'خطای ناشناخته'));
-                $('#myButton').prop('disabled', false).text('کلیک کن');
-            }
-        });
-    });
-});
-</script>
-
-</body>
-</html> -->
 
 
 <html lang="en">
@@ -68,7 +16,7 @@ $(document).ready(function() {
     @endforeach
 </ul>
 
-<button id="myButton">کلیک کن</button>
+<button id="myButton">اضافه کن</button>
 <script>
 $(document).ready(function() {
     $.ajaxSetup({
