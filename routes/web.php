@@ -28,13 +28,8 @@ Route::get('/sql-result', [SqlTrainingControlller::class,'train_1'])->name('trai
 Route::get('msql-result' , function(){
     $machines = Machine::with('machine_type')->
     get();
+
     $machine_fault = MachineFault::join(
-        'machine_fault_types as mft',
-        'machine_faults.machine_fault_type_id',
-        '=',
-        'mft.id'
-    )->get();
-    $machine_fault1 = MachineFault::join(
         'machine_fault_types as mft',
         'machine_faults.machine_fault_type_id',
         '=',
@@ -48,5 +43,5 @@ Route::get('msql-result' , function(){
 
 
 
-    dd($machine_fault1);
+    dd($machine_fault);
 });
