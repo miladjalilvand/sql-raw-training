@@ -1,0 +1,26 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\MachinePerformanceStandard;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
+
+class MachinePerformanceStandardSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     */
+    public function run(): void
+    {
+        //
+        for( $i = 1; $i < 15; $i++ ) 
+            {
+                MachinePerformanceStandard::create([
+                "id"=> $i,
+                "machine_id"=>$i,
+                "expected_output_per_hour"=>rand(300,450)
+            ]);
+            }
+    }
+}

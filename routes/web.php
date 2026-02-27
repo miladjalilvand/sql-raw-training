@@ -5,6 +5,7 @@ use App\Http\Controllers\TaskController;
 use App\Models\Machine;
 use App\Models\MachineFault;
 use App\Models\Task;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -42,6 +43,120 @@ Route::get('msql-result' , function(){
         ->get();
 
 
+        $machine_join_machine_types = 
+        DB::table('machines')->
+        // Machine::
+        join('machine_types as mt','machine_type_id' , '=' , 'mt.id')->
+        get();
+        
+        //dd($machine_join_machine_types);
 
-    dd($machine_fault);
+        $count_machine_of_machine_types = 
+        DB::table('machines')->
+        select('machine_type_id' , DB::raw('COUNT(machine_type_id) as count'))->
+        groupBy('machine_type_id')->
+        get();
+        
+
+$from = '2026-01-01 00:00:00';
+$to   = '2026-02-27 23:59:59';
+
+        $result = DB::table('machine_fault_histories as mfh')
+    ->join('machines as m', 'm.id', '=', 'mfh.machine_id')
+    ->join('machine_logs as start_log', 'start_log.id', '=', 'mfh.start_machine_log_id')
+    ->leftJoin('machine_logs as end_log', 'end_log.id', '=', 'mfh.end_machine_log_id')
+    ->where('start_log.created_at', '<=', $to)
+    ->where(function($q) use ($from) {
+        $q->where('end_log.created_at', '>=', $from)
+          ->orWhereNull('end_log.created_at');
+    })
+    ->select(
+        'm.id',
+        'm.model',
+        DB::raw("
+            SUM(
+                TIMESTAMPDIFF(
+                    DAY,
+                    GREATEST(start_log.created_at, '$from'),
+                    LEAST(
+                        COALESCE(end_log.created_at, NOW()),
+                        '$to'
+                    )
+                )
+            ) as total_fault_minutes
+        ")
+    )
+    ->groupBy('m.id', 'm.model')
+    ->get();
+
+
+    $machines_randeman = DB::table('machine_fault_histories')->
+    get();
+
+$rangeMinutes = (strtotime($to) - strtotime($from)) / 60;
+$rangeMinutes = (strtotime($to) - strtotime($from)) / 60;
+
+// $from = '2026-01-01 00:00:00';
+// $to   = '2026-02-27 23:59:59';
+$result2 = DB::table('machine_fault_histories as mfh')
+    ->join('machines as m', 'm.id', '=', 'mfh.machine_id')
+    ->join('machine_logs as start_log', 'start_log.id', '=', 'mfh.start_machine_log_id')
+    ->leftJoin('machine_logs as end_log', 'end_log.id', '=', 'mfh.end_machine_log_id')
+    ->join('machine_faults as mf', 'mf.id', '=', 'mfh.machine_fault_id')
+    ->join('machine_performance_standards as mps', 'mps.machine_id', '=', 'm.id')
+
+    // شرط همپوشانی بازه
+    ->where('start_log.created_at', '<=', $to)
+    ->where(function($q) use ($from) {
+        $q->where('end_log.created_at', '>=', $from)
+          ->orWhereNull('end_log.created_at');
+    })
+
+    ->select(
+        'm.id',
+        'm.model',
+        'mps.expected_output_per_hour',
+
+        // مجموع دقایق خرابی
+        DB::raw("
+            SUM(
+                TIMESTAMPDIFF(
+                    MINUTE,
+                    GREATEST(start_log.created_at, '$from'),
+                    LEAST(COALESCE(end_log.created_at, NOW()), '$to')
+                )
+            ) as total_fault_minutes
+        "),
+
+        // مجموع دقایق از دست رفته واقعی (با درصد افت)
+        DB::raw("
+            SUM(
+                TIMESTAMPDIFF(
+                    MINUTE,
+                    GREATEST(start_log.created_at, '$from'),
+                    LEAST(COALESCE(end_log.created_at, NOW()), '$to')
+                ) * (mf.drop_performance / 100)
+            ) as lost_performance_minutes
+        ")
+    )
+    ->groupBy('m.id', 'm.model', 'mps.expected_output_per_hour')
+    ->get()
+    ->map(function($row) use ($rangeMinutes) {
+
+        $expectedOutput = ($rangeMinutes / 60) * $row->expected_output_per_hour;
+
+        $lostHours = $row->lost_performance_minutes / 60;
+
+        $lostOutput = $lostHours * $row->expected_output_per_hour;
+
+        $realOutput = $expectedOutput - $lostOutput;
+
+        $row->total_fault_hours = $row->total_fault_minutes / 60;
+        $row->lost_output = $lostOutput;
+        $row->expected_output = $expectedOutput;
+        $row->real_output = $realOutput;
+
+        return $row;
+    });
+    dd($result2);
 });

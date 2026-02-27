@@ -64,9 +64,9 @@ class DatabaseSeeder extends Seeder
         $this->command->info('hello console !!!');
 
 
-        $this->call(MachineSeeder::class);
-        $this->call(MachineTypeSeeder::class);
-        $this->call(MachineFaultSeeder::class);
-        $this->call(MachineFaultTypeSeeder::class);
+        // $this->call(MachineSeeder::class);
+        // $this->call(MachineTypeSeeder::class);
+        // $this->call(MachineFaultSeeder::class);
+        $this->call(MachinePerformanceStandardSeeder::class);
     }
 }
