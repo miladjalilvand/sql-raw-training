@@ -5,6 +5,7 @@ use App\Http\Controllers\TaskController;
 use App\Models\Machine;
 use App\Models\MachineFault;
 use App\Models\Task;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 
@@ -94,7 +95,7 @@ $to   = '2026-02-27 23:59:59';
     get();
 
 $rangeMinutes = (strtotime($to) - strtotime($from)) / 60;
-$rangeMinutes = (strtotime($to) - strtotime($from)) / 60;
+
 
 // $from = '2026-01-01 00:00:00';
 // $to   = '2026-02-27 23:59:59';
@@ -158,5 +159,53 @@ $result2 = DB::table('machine_fault_histories as mfh')
 
         return $row;
     });
-    dd($result2);
+
+// $machines_off_times = DB::table('machine_fault_histories as mfh')
+//     ->join('machines as m', 'm.id', '=', 'mfh.machine_id')
+//     ->join('machine_logs as startml', 'startml.id', '=', 'mfh.start_machine_log_id')
+//     ->leftJoin('machine_logs as endml', 'endml.id', '=', 'mfh.end_machine_log_id')
+//     ->select(
+//         'mfh.machine_id',
+//         'm.model as machine_model', // اضافه کردن نام دستگاه برای شناسایی بهتر
+//         DB::raw('SUM(TIMESTAMPDIFF(MINUTE, 
+//             startml.created_at, 
+//             COALESCE(endml.created_at, NOW())
+//         )) as total_fault_minutes')
+//     )
+//     ->groupBy('mfh.machine_id', 'm.model') // گروه‌بندی بر اساس machine_id
+//     ->get();
+
+
+
+$machines_off_times = DB::table('machine_fault_histories as mfh')->
+join('machines as m', 'm.id' , '=','mfh.machine_id')->
+join('machine_logs as start_log','start_log.id','=','mfh.start_machine_log_id')->
+leftJoin('machine_logs as end_log','end_log.id','=','mfh.end_machine_log_id')->
+select('mfh.machine_id' , 'm.model as model-machine',
+DB::raw('SUM(TIMESTAMPDIFF(DAY,
+start_log.created_at , 
+COALESCE(end_log.created_at  ,NOW())
+)) as total_fault '))->groupBy('m.id','model-machine')->get();
+
+$to_date = Carbon::now()->subMonth(2);
+$from_date = Carbon::now()->subDay(4);
+
+$machine_off_times_in_current_days = 
+DB::table('machine_fault_histories as mfh')->
+join('machines as m','m.id','=','mfh.machine_id')->
+join('machine_logs as start_log','start_log.id','=','mfh.start_machine_log_id')->
+leftJoin('machine_logs as end_log','end_log.id','=','mfh.end_machine_log_id')->
+select('mfh.machine_id as mfhmi','m.model',
+DB::raw('SUM(
+            TIMESTAMPDIFF(
+                HOUR,
+                GREATEST(start_log.created_at, "' . $from_date . '"),
+                LEAST(COALESCE(end_log.created_at, NOW()), "' . $to_date . '")
+            )
+        ) as total_fault_hours'),)->
+groupBy('mfhmi','m.model')->
+get();
+
+
+dd($machine_off_times_in_current_days);
 });
